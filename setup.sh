@@ -17,60 +17,55 @@ echo "
  |_| \_||______/_/ \_\  \____/|_____/
 "
 
-# Check for root
-if [ "$EUID" -ne 0 ]; then
-  echo "Please run as root"
-  exit 1
-fi
-
 # Configuration
 INSTALL_DIR="/var/www/nexus-c2"
 WEB_USER="www-data"
-
-# Allow Composer superuser
 export COMPOSER_ALLOW_SUPERUSER=1
 
 echo "[1/6] Installing System Dependencies (PHP 8.2)..."
-apt-get update -q
-apt-get install -y -q software-properties-common
-add-apt-repository -y ppa:ondrej/php
-apt-get update -q
-apt-get install -y -q php8.2 php8.2-sqlite3 php8.2-curl php8.2-xml php8.2-mbstring python3 python3-pip unzip curl apache2 libapache2-mod-php8.2
+sudo apt-get update -q
+sudo apt-get install -y -q software-properties-common
+sudo add-apt-repository -y ppa:ondrej/php
+sudo apt-get update -q
+sudo apt-get install -y -q php8.2 php8.2-sqlite3 php8.2-curl php8.2-xml php8.2-mbstring python3 python3-pip unzip curl apache2 libapache2-mod-php8.2
+
+echo "[*] Installing Python Dependencies..."
+sudo pip3 install pyinstaller websocket-client --break-system-packages
 
 echo "[2/6] Installing Composer..."
 if ! command -v composer &> /dev/null; then
     curl -sS https://getcomposer.org/installer | php
-    mv composer.phar /usr/local/bin/composer
+    sudo mv composer.phar /usr/local/bin/composer
 fi
 
 echo "[3/6] Deploying Files to $INSTALL_DIR..."
-mkdir -p $INSTALL_DIR
+sudo mkdir -p $INSTALL_DIR
 
 # Backup existing database if it exists
 if [ -f "$INSTALL_DIR/data/c2.db" ]; then
     echo "[*] Backing up existing database..."
-    cp "$INSTALL_DIR/data/c2.db" "$INSTALL_DIR/data/c2.db.bak_$(date +%s)"
+    sudo cp "$INSTALL_DIR/data/c2.db" "$INSTALL_DIR/data/c2.db.bak_$(date +%s)"
 fi
 
 # Copy files from current directory to install dir
-cp -r ./* $INSTALL_DIR/
+sudo cp -r ./* $INSTALL_DIR/
 # Fix permissions
-chown -R $WEB_USER:$WEB_USER $INSTALL_DIR
-chmod -R 755 $INSTALL_DIR
+sudo chown -R $WEB_USER:$WEB_USER $INSTALL_DIR
+sudo chmod -R 755 $INSTALL_DIR
 # Ensure data directory is writable
-mkdir -p $INSTALL_DIR/data
-chmod -R 777 $INSTALL_DIR/data
+sudo mkdir -p $INSTALL_DIR/data
+sudo chmod -R 777 $INSTALL_DIR/data
 
 echo "[4/6] Installing PHP Dependencies..."
 if [ -d "$INSTALL_DIR/websocket" ]; then
     cd $INSTALL_DIR/websocket
-    rm -f composer.lock
-    composer update --no-interaction
-    cd $INSTALL_DIR
+    sudo rm -f composer.lock
+    sudo composer update --no-interaction
+    cd ..
 fi
 
 echo "[5/6] Configuring Apache..."
-cat > /etc/apache2/sites-available/nexus-c2.conf <<EOL
+cat <<EOL | sudo tee /etc/apache2/sites-available/nexus-c2.conf
 <VirtualHost *:80>
     ServerAdmin webmaster@localhost
     DocumentRoot $INSTALL_DIR
@@ -84,13 +79,13 @@ cat > /etc/apache2/sites-available/nexus-c2.conf <<EOL
 </VirtualHost>
 EOL
 
-a2dissite 000-default.conf
-a2ensite nexus-c2.conf
-a2enmod rewrite
-systemctl restart apache2
+sudo a2dissite 000-default.conf
+sudo a2ensite nexus-c2.conf
+sudo a2enmod rewrite
+sudo systemctl restart apache2
 
 echo "[6/6] Configuring WebSocket Service..."
-cat > /etc/systemd/system/nexus-c2-socket.service <<EOL
+cat <<EOL | sudo tee /etc/systemd/system/nexus-c2-socket.service
 [Unit]
 Description=NEXUS C2 WebSocket Server
 After=network.target
@@ -107,14 +102,14 @@ RestartSec=5s
 WantedBy=multi-user.target
 EOL
 
-systemctl daemon-reload
-systemctl enable nexus-c2-socket
-systemctl restart nexus-c2-socket
+sudo systemctl daemon-reload
+sudo systemctl enable nexus-c2-socket
+sudo systemctl restart nexus-c2-socket
 
 echo "[*] Configuring sudo permission for Web Panel..."
 # Allow www-data to manage the service without password
-echo "$WEB_USER ALL=(ALL) NOPASSWD: /bin/systemctl start nexus-c2-socket, /bin/systemctl stop nexus-c2-socket, /bin/systemctl restart nexus-c2-socket, /bin/systemctl status nexus-c2-socket, /bin/systemctl is-active nexus-c2-socket" > /etc/sudoers.d/nexus-c2
-chmod 0440 /etc/sudoers.d/nexus-c2
+echo "$WEB_USER ALL=(ALL) NOPASSWD: /bin/systemctl start nexus-c2-socket, /bin/systemctl stop nexus-c2-socket, /bin/systemctl restart nexus-c2-socket, /bin/systemctl status nexus-c2-socket, /bin/systemctl is-active nexus-c2-socket" | sudo tee /etc/sudoers.d/nexus-c2
+sudo chmod 0440 /etc/sudoers.d/nexus-c2
 
 echo "================================="
 echo "   DEPLOYMENT COMPLETE!"
