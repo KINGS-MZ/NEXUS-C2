@@ -39,21 +39,37 @@ echo -e "${GREEN}[1/7]${NC} ${WHITE}Installing System Dependencies (PHP 8.2)...$
 sudo apt-get update -q
 sudo apt-get install -y -q software-properties-common
 sudo add-apt-repository -y ppa:ondrej/php
-sudo apt-get update -q
+# Force update and handle PPA issues
+sudo apt-get update -q --fix-missing
 sudo apt-get install -y -q php8.2 php8.2-sqlite3 php8.2-curl php8.2-xml php8.2-mbstring python3 python3-pip unzip curl apache2 libapache2-mod-php8.2
 
 echo -e "${CYAN}[*]${NC} ${WHITE}Installing Python Dependencies...${NC}"
-sudo pip3 install pyinstaller websocket-client --break-system-packages 2>/dev/null || pip3 install pyinstaller websocket-client --user
+# Use -H to ensure pip installs to system directories, not /root/.local
+sudo -H pip3 install pyinstaller websocket-client --break-system-packages 2>/dev/null || sudo pip3 install pyinstaller websocket-client
 
-# Create symlinks for pyinstaller
+# Create symlinks for pyinstaller (Handle both system and user installs)
 PYINSTALLER_PATH=$(which pyinstaller 2>/dev/null)
+if [ -z "$PYINSTALLER_PATH" ]; then
+    # Check /root/.local/bin specifically as fallback
+    if [ -f "/root/.local/bin/pyinstaller" ]; then
+        PYINSTALLER_PATH="/root/.local/bin/pyinstaller"
+    else
+        PYINSTALLER_PATH=$(find /usr/local/bin /home -name "pyinstaller" 2>/dev/null | head -1)
+    fi
+fi
 if [ -z "$PYINSTALLER_PATH" ]; then
     PYINSTALLER_PATH=$(python3 -c "import site; print(site.USER_BASE + '/bin/pyinstaller')" 2>/dev/null)
 fi
 if [ -n "$PYINSTALLER_PATH" ] && [ -f "$PYINSTALLER_PATH" ]; then
     sudo ln -sf "$PYINSTALLER_PATH" /usr/local/bin/pyinstaller 2>/dev/null
     sudo ln -sf "$PYINSTALLER_PATH" /usr/bin/pyinstaller 2>/dev/null
-    echo -e "${GREEN}[✓]${NC} PyInstaller configured"
+    # Ensure all users can read/execute the original file if it's in root
+    if [[ "$PYINSTALLER_PATH" == "/root/"* ]]; then
+        sudo chmod o+rx "$PYINSTALLER_PATH"
+        # Also need to make sure the parent dir is traversing executable
+        sudo chmod o+x /root/.local /root/.local/bin 2>/dev/null
+    fi
+    echo -e "${GREEN}[✓]${NC} PyInstaller configured at $PYINSTALLER_PATH"
 fi
 
 echo -e "${GREEN}[2/7]${NC} ${WHITE}Installing Composer...${NC}"
