@@ -35,41 +35,46 @@ INSTALL_DIR="/var/www/nexus-c2"
 WEB_USER="www-data"
 export COMPOSER_ALLOW_SUPERUSER=1
 
-echo -e "${GREEN}[1/7]${NC} ${WHITE}Installing System Dependencies (PHP 8.2)...${NC}"
+echo -e "${GREEN}[1/7]${NC} ${WHITE}Installing System Dependencies...${NC}"
 sudo apt-get update -q
 sudo apt-get install -y -q software-properties-common
-sudo add-apt-repository -y ppa:ondrej/php
-# Force update and handle PPA issues
+# Try installing PHP 8.2, fallback to default if PPA fails
+if ! sudo add-apt-repository -y ppa:ondrej/php 2>/dev/null; then
+    echo -e "${YELLOW}[!] PPA install failed, continuing with default repositories${NC}"
+fi
 sudo apt-get update -q --fix-missing
-sudo apt-get install -y -q php8.2 php8.2-sqlite3 php8.2-curl php8.2-xml php8.2-mbstring python3 python3-pip unzip curl apache2 libapache2-mod-php8.2
+if ! sudo apt-get install -y -q php8.2 php8.2-sqlite3 php8.2-curl php8.2-xml php8.2-mbstring libapache2-mod-php8.2; then
+    echo -e "${YELLOW}[!] PHP 8.2 not found, using default PHP version${NC}"
+    sudo apt-get install -y -q php php-sqlite3 php-curl php-xml php-mbstring libapache2-mod-php
+fi
+sudo apt-get install -y -q python3 python3-pip unzip curl apache2
 
 echo -e "${CYAN}[*]${NC} ${WHITE}Installing Python Dependencies...${NC}"
-# Use -H to ensure pip installs to system directories, not /root/.local
-sudo -H pip3 install pyinstaller websocket-client --break-system-packages 2>/dev/null || sudo pip3 install pyinstaller websocket-client
+# CRITICAL: Uninstall any user-level pyinstaller that www-data can't see
+sudo pip3 uninstall -y pyinstaller websocket-client 2>/dev/null
+# Use -H to ensure pip installs to system directories (global), not /root/.local
+sudo -H pip3 install pyinstaller websocket-client --break-system-packages 2>/dev/null || sudo -H pip3 install pyinstaller websocket-client
 
-# Create symlinks for pyinstaller (Handle both system and user installs)
+# Verify and fix permissions
 PYINSTALLER_PATH=$(which pyinstaller 2>/dev/null)
 if [ -z "$PYINSTALLER_PATH" ]; then
-    # Check /root/.local/bin specifically as fallback
-    if [ -f "/root/.local/bin/pyinstaller" ]; then
-        PYINSTALLER_PATH="/root/.local/bin/pyinstaller"
-    else
-        PYINSTALLER_PATH=$(find /usr/local/bin /home -name "pyinstaller" 2>/dev/null | head -1)
-    fi
+    PYINSTALLER_PATH=$(find /usr -name pyinstaller -type f 2>/dev/null | head -n 1)
 fi
-if [ -z "$PYINSTALLER_PATH" ]; then
-    PYINSTALLER_PATH=$(python3 -c "import site; print(site.USER_BASE + '/bin/pyinstaller')" 2>/dev/null)
-fi
-if [ -n "$PYINSTALLER_PATH" ] && [ -f "$PYINSTALLER_PATH" ]; then
+
+if [ -n "$PYINSTALLER_PATH" ]; then
+    sudo chmod 755 "$PYINSTALLER_PATH"
     sudo ln -sf "$PYINSTALLER_PATH" /usr/local/bin/pyinstaller 2>/dev/null
     sudo ln -sf "$PYINSTALLER_PATH" /usr/bin/pyinstaller 2>/dev/null
-    # Ensure all users can read/execute the original file if it's in root
-    if [[ "$PYINSTALLER_PATH" == "/root/"* ]]; then
-        sudo chmod o+rx "$PYINSTALLER_PATH"
-        # Also need to make sure the parent dir is traversing executable
-        sudo chmod o+x /root/.local /root/.local/bin 2>/dev/null
+    echo -e "${GREEN}[✓]${NC} PyInstaller configured globally at $PYINSTALLER_PATH"
+    
+    # Check if we can run it
+    if $PYINSTALLER_PATH --version >/dev/null 2>&1; then
+        echo -e "${GREEN}[✓]${NC} PyInstaller verification passed"
+    else
+        echo -e "${RED}[!]${NC} PyInstaller installed but execution failed"
     fi
-    echo -e "${GREEN}[✓]${NC} PyInstaller configured at $PYINSTALLER_PATH"
+else
+    echo -e "${RED}[!]${NC} PyInstaller installation FAILED. Try running: sudo -H pip3 install pyinstaller"
 fi
 
 echo -e "${GREEN}[2/7]${NC} ${WHITE}Installing Composer...${NC}"
