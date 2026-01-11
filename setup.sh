@@ -50,31 +50,61 @@ fi
 sudo apt-get install -y -q python3 python3-pip unzip curl apache2
 
 echo -e "${CYAN}[*]${NC} ${WHITE}Installing Python Dependencies...${NC}"
-# CRITICAL: Uninstall any user-level pyinstaller that www-data can't see
+
+# 1. Clean up previous broken installs
+sudo rm -f /usr/local/bin/pyinstaller 2>/dev/null
+sudo rm -f /usr/bin/pyinstaller 2>/dev/null
+# Clean both system and user installs to start fresh
+sudo apt-get remove -y pyinstaller 2>/dev/null
+sudo -H pip3 uninstall -y pyinstaller websocket-client 2>/dev/null
 sudo pip3 uninstall -y pyinstaller websocket-client 2>/dev/null
-# Use -H to ensure pip installs to system directories (global), not /root/.local
+
+# 2. Install GLOBALLY using sudo -H to target /usr/local/bin
+echo -e "${YELLOW}[*]${NC} Installing PyInstaller globally..."
 sudo -H pip3 install pyinstaller websocket-client --break-system-packages 2>/dev/null || sudo -H pip3 install pyinstaller websocket-client
 
-# Verify and fix permissions
-PYINSTALLER_PATH=$(which pyinstaller 2>/dev/null)
-if [ -z "$PYINSTALLER_PATH" ]; then
-    PYINSTALLER_PATH=$(find /usr -name pyinstaller -type f 2>/dev/null | head -n 1)
+# 3. Find the REAL binary (not a symlink)
+PYINSTALLER_PATH=""
+# Check common global locations first
+if [ -f "/usr/local/bin/pyinstaller" ]; then
+    PYINSTALLER_PATH="/usr/local/bin/pyinstaller"
+elif [ -f "/usr/bin/pyinstaller" ]; then
+    PYINSTALLER_PATH="/usr/bin/pyinstaller"
+else
+    # Search in other locations
+    PYINSTALLER_PATH=$(find /usr -name pyinstaller -type f 2>/dev/null | grep -v "site-packages" | head -n 1)
 fi
 
-if [ -n "$PYINSTALLER_PATH" ]; then
-    sudo chmod 755 "$PYINSTALLER_PATH"
-    sudo ln -sf "$PYINSTALLER_PATH" /usr/local/bin/pyinstaller 2>/dev/null
-    sudo ln -sf "$PYINSTALLER_PATH" /usr/bin/pyinstaller 2>/dev/null
-    echo -e "${GREEN}[✓]${NC} PyInstaller configured globally at $PYINSTALLER_PATH"
+# 4. Create proper symlinks (if needed) and checking permissions
+if [ -n "$PYINSTALLER_PATH" ] && [ -f "$PYINSTALLER_PATH" ]; then
+    echo -e "${GREEN}[✓]${NC} Found PyInstaller at $PYINSTALLER_PATH"
     
-    # Check if we can run it
-    if $PYINSTALLER_PATH --version >/dev/null 2>&1; then
+    # Ensure it's executable
+    sudo chmod 755 "$PYINSTALLER_PATH"
+    
+    # Check if we need to link to /usr/bin (for www-data)
+    if [ "$PYINSTALLER_PATH" != "/usr/bin/pyinstaller" ]; then
+        sudo ln -sf "$PYINSTALLER_PATH" /usr/bin/pyinstaller
+        echo -e "${GREEN}[+]${NC} Linked to /usr/bin/pyinstaller"
+    fi
+    
+    # Verify execution
+    if /usr/bin/pyinstaller --version >/dev/null 2>&1; then
         echo -e "${GREEN}[✓]${NC} PyInstaller verification passed"
     else
-        echo -e "${RED}[!]${NC} PyInstaller installed but execution failed"
+        echo -e "${RED}[!]${NC} PyInstaller found but execution failed"
     fi
 else
-    echo -e "${RED}[!]${NC} PyInstaller installation FAILED. Try running: sudo -H pip3 install pyinstaller"
+    echo -e "${RED}[!]${NC} PyInstaller binary NOT found. Trying fallback install..."
+    # Fallback: install to user and move
+    pip3 install pyinstaller websocket-client --user
+    USER_PATH=$(python3 -m site --user-base)/bin/pyinstaller
+    if [ -f "$USER_PATH" ]; then
+        sudo mv "$USER_PATH" /usr/local/bin/pyinstaller
+        sudo chmod 755 /usr/local/bin/pyinstaller
+        sudo ln -sf /usr/local/bin/pyinstaller /usr/bin/pyinstaller
+        echo -e "${GREEN}[✓]${NC} PyInstaller installed via fallback and moved to global"
+    fi
 fi
 
 echo -e "${GREEN}[2/7]${NC} ${WHITE}Installing Composer...${NC}"
