@@ -3,8 +3,8 @@
 # NEXUS C2 Installation Script for Ubuntu/Debian
 
 echo "================================="
-echo "     NEXUS C2 - Installer"
-echo "       Created by @Imad"
+echo "    NEXUS C2 - Installer"
+echo "      Created by @Imad"
 echo "================================="
 
 # Check for root
@@ -12,6 +12,9 @@ if [ "$EUID" -ne 0 ]; then
   echo "Please run as root"
   exit 1
 fi
+
+# Allow Composer to run as root
+export COMPOSER_ALLOW_SUPERUSER=1
 
 echo "[*] Updating package lists..."
 apt-get update
@@ -50,32 +53,9 @@ echo "[*] Setting up database directory..."
 mkdir -p data
 chmod 777 data
 
-# Ask to create a dedicated user
-echo ""
-read -p "[?] Do you want to create a dedicated user 'nexus' to run the server? (Recommended) [y/N]: " create_user
-if [[ "$create_user" =~ ^[Yy]$ ]]; then
-    if id "nexus" &>/dev/null; then
-        echo "[*] User 'nexus' already exists."
-    else
-        echo "[*] Creating user 'nexus'..."
-        useradd -m -s /bin/bash nexus
-    fi
-    
-    echo "[*] Transferring ownership of files to 'nexus'..."
-    chown -R nexus:nexus .
-    
-    echo "[+] Permissions set. You can now run the server as 'nexus'."
-fi
-
 echo "================================="
 echo "   Installation Complete!"
 echo "================================="
-if [[ "$create_user" =~ ^[Yy]$ ]]; then
-    echo "1. Switch to the nexus user: su - nexus"
-    echo "2. Navigate to folder: cd $(pwd)"
-    echo "3. Start server: ./run_server.sh"
-else
-    echo "1. Configure your web server (Apache/Nginx) to point to this directory."
-    echo "2. Start the WebSocket server using: ./run_server.sh"
-fi
+echo "1. Configure your web server (Apache/Nginx) to point to this directory."
+echo "2. Start the WebSocket server using: ./run_server.sh"
 echo "3. Default credentials: admin / admin"
