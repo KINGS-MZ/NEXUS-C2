@@ -43,11 +43,11 @@ requireAuth();
                         <polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>
                     </svg>
                 </a>
-                <a href="#" class="nav-item" data-view="payload" title="Payload">
+                <a href="#" class="nav-item" data-view="payload" title="Beacon Builder">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="7 10 12 15 17 10"/>
-                        <line x1="12" y1="15" x2="12" y2="3"/>
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                        <path d="M2 17l10 5 10-5"/>
+                        <path d="M2 12l10 5 10-5"/>
                     </svg>
                 </a>
             </nav>
@@ -310,6 +310,56 @@ requireAuth();
                             </div>
                         </div>
                         <div class="payload-right">
+                            <!-- Evasion Techniques Cards -->
+                            <div class="card evasion-card">
+                                <div class="card-header">
+                                    <h3>Evasion Techniques</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="evasion-grid" id="evasionGrid">
+                                        <div class="evasion-option" data-evasion="anti_vm" title="Detect VMs and sandboxes">
+                                            <svg class="evasion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                                            <div class="evasion-text"><span class="evasion-name">Anti-VM</span><span class="evasion-desc">Sandbox Detection</span></div>
+                                        </div>
+                                        <div class="evasion-option" data-evasion="anti_debug" title="Detect debuggers">
+                                            <svg class="evasion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                            <div class="evasion-text"><span class="evasion-name">Anti-Debug</span><span class="evasion-desc">Debugger Checks</span></div>
+                                        </div>
+                                        <div class="evasion-option" data-evasion="memory_inject" title="Run entirely in RAM">
+                                            <svg class="evasion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><line x1="4" y1="9" x2="20" y2="9"/><line x1="9" y1="4" x2="9" y2="9"/></svg>
+                                            <div class="evasion-text"><span class="evasion-name">Memory Only</span><span class="evasion-desc">Fileless</span></div>
+                                        </div>
+                                        <div class="evasion-option" data-evasion="process_inject" title="Inject into explorer.exe">
+                                            <svg class="evasion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                            <div class="evasion-text"><span class="evasion-name">Process Inject</span><span class="evasion-desc">Hide in Process</span></div>
+                                        </div>
+                                        <div class="evasion-option" data-evasion="sleep_obf" title="Randomize timing">
+                                            <svg class="evasion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                            <div class="evasion-text"><span class="evasion-name">Sleep Obfuscation</span><span class="evasion-desc">Timing Evasion</span></div>
+                                        </div>
+                                        <div class="evasion-option" data-evasion="amsi_bypass" title="Bypass AMSI">
+                                            <svg class="evasion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                            <div class="evasion-text"><span class="evasion-name">AMSI Bypass</span><span class="evasion-desc">AV Patching</span></div>
+                                        </div>
+                                        <div class="evasion-option" data-evasion="etw_bypass" title="Disable ETW">
+                                            <svg class="evasion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                            <div class="evasion-text"><span class="evasion-name">ETW Bypass</span><span class="evasion-desc">Log Evasion</span></div>
+                                        </div>
+                                        <div class="evasion-option" data-evasion="syscall_direct" title="Direct syscalls">
+                                            <svg class="evasion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                                            <div class="evasion-text"><span class="evasion-name">Direct Syscalls</span><span class="evasion-desc">Kernel Bypass</span></div>
+                                        </div>
+                                        <div class="evasion-option" data-evasion="string_encrypt" title="Encrypt strings">
+                                            <svg class="evasion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                            <div class="evasion-text"><span class="evasion-name">String Encrypt</span><span class="evasion-desc">Static Evasion</span></div>
+                                        </div>
+                                        <div class="evasion-option" data-evasion="unhook_ntdll" title="Remove EDR hooks">
+                                            <svg class="evasion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+                                            <div class="evasion-text"><span class="evasion-name">Unhook NTDLL</span><span class="evasion-desc">EDR Evasion</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="card">
                                 <div class="card-header">
                                     <h3>Generated Beacons</h3>

