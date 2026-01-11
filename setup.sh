@@ -3,8 +3,8 @@
 # NEXUS C2 Installation Script for Ubuntu/Debian
 
 echo "================================="
-echo "   NEXUS C2 - Installer"
-echo "   Created by @Imad"
+echo "    NEXUS C2 - Installer"
+echo "      Created by @Imad"
 echo "================================="
 
 # Check for root
@@ -15,9 +15,14 @@ fi
 
 echo "[*] Updating package lists..."
 apt-get update
+apt-get install -y software-properties-common
 
-echo "[*] Installing dependencies..."
-apt-get install -y php php-sqlite3 php-curl python3 python3-pip unzip curl php-xml php-mbstring
+echo "[*] Adding PHP repository..."
+add-apt-repository -y ppa:ondrej/php
+apt-get update
+
+echo "[*] Installing dependencies (PHP 8.2)..."
+apt-get install -y php8.2 php8.2-sqlite3 php8.2-curl php8.2-xml php8.2-mbstring python3 python3-pip unzip curl
 
 # Install Composer
 if ! command -v composer &> /dev/null; then
@@ -32,7 +37,8 @@ fi
 if [ -d "websocket" ]; then
     echo "[*] Installing WebSocket dependencies..."
     cd websocket
-    composer install
+    rm -f composer.lock # Remove lock file to allow fresh resolution
+    composer update --no-interaction
     cd ..
 else
     echo "[Error] websocket directory not found."
