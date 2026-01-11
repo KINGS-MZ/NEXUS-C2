@@ -8,7 +8,7 @@ function requireAuth() {
     }
     
     if (!isset($_SESSION['user_id']) || !isset($_SESSION['last_activity'])) {
-        header('Location: /c2/index.php');
+        header('Location: index.php');
         exit;
     }
     

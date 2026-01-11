@@ -42,7 +42,7 @@
             errorMsg.textContent = '';
             
             try {
-                const response = await fetch('/c2/api/auth.php', {
+                const response = await fetch('api/auth.php', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({

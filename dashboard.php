@@ -9,7 +9,7 @@ requireAuth();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NEXUS C2 - Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
@@ -52,9 +52,7 @@ requireAuth();
                 </a>
             </nav>
             <div class="sidebar-footer">
-                <div class="creator-credit" style="font-size: 10px; color: var(--text-muted); text-align: center; margin-bottom: 10px; opacity: 0.7;">
-                    Made by @Imad
-                </div>
+
                 <div class="connection-status" id="connectionStatus" title="Disconnected"></div>
                 <a href="#" id="logoutBtn" class="nav-item" title="Logout">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -70,6 +68,7 @@ requireAuth();
                 <div class="page-title">
                     <h1 id="viewTitle">Dashboard</h1>
                 </div>
+                <div class="topbar-credit">MADE BY @IMAD</div>
             </header>
             
             <div class="content-area">

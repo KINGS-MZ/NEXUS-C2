@@ -40,7 +40,7 @@ switch ($action) {
         $_SESSION['username'] = $username;
         $_SESSION['last_activity'] = time();
         
-        jsonResponse(['success' => true, 'redirect' => '/c2/dashboard.php']);
+        jsonResponse(['success' => true, 'redirect' => 'dashboard.php']);
         break;
         
     case 'logout':

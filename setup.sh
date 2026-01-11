@@ -4,9 +4,18 @@
 # Created by @Imad
 
 echo "================================="
-echo "   NEXUS C2 - Full Auto Installer"
-echo "      Created by @Imad"
+echo "   NEXUS C2 - Installer"
+echo "   Created by @Imad"
 echo "================================="
+
+echo "
+  _   _  ________   __  _    _  _____
+ | \ | ||  ____\ \ / / | |  | |/ ____|
+ |  \| || |__   \ V /  | |  | | (___
+ | . \ ||  __|   > <   | |  | |\___ \\
+ | |\  || |____ / . \  | |__| |____) |
+ |_| \_||______/_/ \_\  \____/|_____/
+"
 
 # Check for root
 if [ "$EUID" -ne 0 ]; then
