@@ -1,0 +1,78 @@
+2026-01-11T20:28:16+01:00 CMD: cd /d "C:\Users\imadk\AppData\Local\Temp/nexus_build_6963f9c0033e5" && python -m PyInstaller --onefile --noconsole --noupx --clean --name 2ca71463 beacon.py 2>&1
+CODE: 0
+OUT: 228 INFO: PyInstaller: 6.17.0, contrib hooks: 2025.11
+233 INFO: Python: 3.12.10
+246 INFO: Platform: Windows-11-10.0.26200-SP0
+246 INFO: Python environment: C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0
+246 INFO: wrote C:\Users\imadk\AppData\Local\Temp\nexus_build_6963f9c0033e5\2ca71463.spec
+254 INFO: Removing temporary files and cleaning cache in C:\Users\imadk\AppData\Local\pyinstaller
+270 INFO: Module search paths (PYTHONPATH):
+['C:\\Users\\imadk\\AppData\\Local\\Temp\\nexus_build_6963f9c0033e5',
+ 'C:\\Program '
+ 'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\\python312.zip',
+ 'C:\\Program '
+ 'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\\DLLs',
+ 'C:\\Program '
+ 'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\\Lib',
+ 'C:\\Program '
+ 'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0',
+ 'C:\\Users\\imadk\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python312\\site-packages',
+ 'C:\\Program '
+ 'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\\Lib\\site-packages',
+ 'C:\\Users\\imadk\\AppData\\Local\\Temp\\nexus_build_6963f9c0033e5']
+887 INFO: checking Analysis
+887 INFO: Building Analysis because Analysis-00.toc is non existent
+887 INFO: Looking for Python shared library...
+887 INFO: Using Python shared library: C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\python312.dll
+887 INFO: Running Analysis Analysis-00.toc
+887 INFO: Target bytecode optimization level: 0
+887 INFO: Initializing module dependency graph...
+887 INFO: Initializing module graph hook caches...
+934 INFO: Analyzing modules for base_library.zip ...
+3059 INFO: Processing standard module hook 'hook-encodings.py' from 'C:\\Users\\imadk\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python312\\site-packages\\PyInstaller\\hooks'
+5465 INFO: Processing standard module hook 'hook-pickle.py' from 'C:\\Users\\imadk\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python312\\site-packages\\PyInstaller\\hooks'
+6742 INFO: Processing standard module hook 'hook-heapq.py' from 'C:\\Users\\imadk\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python312\\site-packages\\PyInstaller\\hooks'
+7414 INFO: Caching module dependency graph...
+7463 INFO: Analyzing C:\Users\imadk\AppData\Local\Temp\nexus_build_6963f9c0033e5\beacon.py
+7504 INFO: Processing standard module hook 'hook-platform.py' from 'C:\\Users\\imadk\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python312\\site-packages\\PyInstaller\\hooks'
+7509 INFO: Processing pre-find-module-path hook 'hook-tkinter.py' from 'C:\\Users\\imadk\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python312\\site-packages\\PyInstaller\\hooks\\pre_find_module_path'
+7509 INFO: TclTkInfo: initializing cached Tcl/Tk info...
+8023 INFO: Processing standard module hook 'hook-_tkinter.py' from 'C:\\Users\\imadk\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python312\\site-packages\\PyInstaller\\hooks'
+8110 INFO: Processing standard module hook 'hook-_ctypes.py' from 'C:\\Users\\imadk\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python312\\site-packages\\PyInstaller\\hooks'
+8119 INFO: Processing module hooks (post-graph stage)...
+8130 INFO: Processing standard module hook 'hook-_tkinter.py' from 'C:\\Users\\imadk\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python312\\site-packages\\PyInstaller\\hooks'
+8155 INFO: Performing binary vs. data reclassification (927 entries)
+8403 INFO: Looking for ctypes DLLs
+8415 INFO: Analyzing run-time hooks ...
+8417 INFO: Including run-time hook 'pyi_rth_inspect.py' from 'C:\\Users\\imadk\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python312\\site-packages\\PyInstaller\\hooks\\rthooks'
+8420 INFO: Including run-time hook 'pyi_rth__tkinter.py' from 'C:\\Users\\imadk\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python312\\site-packages\\PyInstaller\\hooks\\rthooks'
+8452 INFO: Creating base_library.zip...
+8480 INFO: Looking for dynamic libraries
+8741 INFO: Extra DLL search directories (AddDllDirectory): []
+8741 INFO: Extra DLL search directories (PATH): []
+9223 INFO: Warnings written to C:\Users\imadk\AppData\Local\Temp\nexus_build_6963f9c0033e5\build\2ca71463\warn-2ca71463.txt
+9247 INFO: Graph cross-reference written to C:\Users\imadk\AppData\Local\Temp\nexus_build_6963f9c0033e5\build\2ca71463\xref-2ca71463.html
+9309 INFO: checking PYZ
+9309 INFO: Building PYZ because PYZ-00.toc is non existent
+9309 INFO: Building PYZ (ZlibArchive) C:\Users\imadk\AppData\Local\Temp\nexus_build_6963f9c0033e5\build\2ca71463\PYZ-00.pyz
+9493 INFO: Building PYZ (ZlibArchive) C:\Users\imadk\AppData\Local\Temp\nexus_build_6963f9c0033e5\build\2ca71463\PYZ-00.pyz completed successfully.
+9518 INFO: checking PKG
+9518 INFO: Building PKG because PKG-00.toc is non existent
+9518 INFO: Building PKG (CArchive) 2ca71463.pkg
+13696 INFO: Building PKG (CArchive) 2ca71463.pkg completed successfully.
+13729 INFO: Bootloader C:\Users\imadk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\LocalCache\local-packages\Python312\site-packages\PyInstaller\bootloader\Windows-64bit-intel\runw.exe
+13729 INFO: checking EXE
+13729 INFO: Building EXE because EXE-00.toc is non existent
+13729 INFO: Building EXE from EXE-00.toc
+13729 INFO: Copying bootloader EXE to C:\Users\imadk\AppData\Local\Temp\nexus_build_6963f9c0033e5\dist\2ca71463.exe
+13796 INFO: Copying icon to EXE
+13864 INFO: Copying 0 resources to EXE
+13864 INFO: Embedding manifest in EXE
+13870 INFO: Appending PKG archive to EXE
+13962 INFO: Fixing EXE headers
+15540 INFO: Building EXE from EXE-00.toc completed successfully.
+15576 INFO: Build complete! The results are available in: C:\Users\imadk\AppData\Local\Temp\nexus_build_6963f9c0033e5\dist
+
+ERR: 
+DBG: {"user":"nexus\\imadk","php_version":"8.2.12","python_detected":"python","evasions_selected":[],"cmd":"cd \/d \"C:\\Users\\imadk\\AppData\\Local\\Temp\/nexus_build_6963f9c0033e5\" && python -m PyInstaller --onefile --noconsole --noupx --clean --name 2ca71463 beacon.py 2>&1","temp_dir":"C:\\Users\\imadk\\AppData\\Local\\Temp\/nexus_build_6963f9c0033e5","path_env":"C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\WINDOWS\\System32\\OpenSSH\\;C:\\Program Files\\nodejs\\;C:\\Program Files\\Git\\cmd;C:\\Program Files\\dotnet\\;C:\\xampp\\php\\;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\WINDOWS\\System32\\OpenSSH\\;C:\\Users\\imadk\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\imadk\\AppData\\Local\\Programs\\Windsurf\\bin;C:\\Users\\imadk\\AppData\\Local\\Programs\\Ollama;C:\\Users\\imadk\\.lmstudio\\bin;C:\\Users\\imadk\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\imadk\\AppData\\Local\\Programs\\Antigravity\\bin"}
+
