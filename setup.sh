@@ -45,6 +45,13 @@ fi
 
 echo "[3/6] Deploying Files to $INSTALL_DIR..."
 mkdir -p $INSTALL_DIR
+
+# Backup existing database if it exists
+if [ -f "$INSTALL_DIR/data/c2.db" ]; then
+    echo "[*] Backing up existing database..."
+    cp "$INSTALL_DIR/data/c2.db" "$INSTALL_DIR/data/c2.db.bak_$(date +%s)"
+fi
+
 # Copy files from current directory to install dir
 cp -r ./* $INSTALL_DIR/
 # Fix permissions
@@ -93,7 +100,8 @@ Type=simple
 User=root
 WorkingDirectory=$INSTALL_DIR
 ExecStart=/usr/bin/php $INSTALL_DIR/websocket/server.php
-Restart=always
+Restart=on-failure
+RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target
@@ -102,6 +110,11 @@ EOL
 systemctl daemon-reload
 systemctl enable nexus-c2-socket
 systemctl restart nexus-c2-socket
+
+echo "[*] Configuring sudo permission for Web Panel..."
+# Allow www-data to manage the service without password
+echo "$WEB_USER ALL=(ALL) NOPASSWD: /bin/systemctl start nexus-c2-socket, /bin/systemctl stop nexus-c2-socket, /bin/systemctl restart nexus-c2-socket, /bin/systemctl status nexus-c2-socket, /bin/systemctl is-active nexus-c2-socket" > /etc/sudoers.d/nexus-c2
+chmod 0440 /etc/sudoers.d/nexus-c2
 
 echo "================================="
 echo "   DEPLOYMENT COMPLETE!"
