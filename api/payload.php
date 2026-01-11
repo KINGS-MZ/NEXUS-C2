@@ -184,18 +184,48 @@ PYTHON;
         mkdir($tempDir, 0755, true);
         file_put_contents($tempDir . '/beacon.py', $beaconCode);
 
-        $python = 'python';
-        exec('where python 2>&1', $output, $code);
-        if ($code !== 0) {
-            exec('where python3 2>&1', $output, $code);
-            $python = $code === 0 ? 'python3' : 'python';
+        // Detect Python
+        $python = 'python3';
+        exec('which python3', $out, $ret);
+        if ($ret !== 0) {
+            $python = 'python';
         }
 
-        $installCmd = "$python -m pip install pyinstaller websocket-client -q 2>&1";
-        exec($installCmd);
+        $debug = [
+            'user' => exec('whoami'),
+            'path' => getenv('PATH'),
+            'python' => $python,
+            'temp' => $tempDir
+        ];
 
-        $buildCmd = "cd /d \"$tempDir\" && $python -m PyInstaller --onefile --noconsole --clean --name beacon beacon.py 2>&1";
-        exec($buildCmd, $buildOutput, $buildCode);
+        $isWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+        $cdCmd = $isWindows ? 'cd /d' : 'cd';
+        
+        $buildCmd = "$cdCmd \"$tempDir\" && $python -m PyInstaller --onefile --noconsole --clean --name beacon beacon.py 2>&1";
+        
+        // Run process with pipe to capture STDERR
+        $descriptors = [1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
+        $process = proc_open($buildCmd, $descriptors, $pipes, $tempDir);
+        
+        if (is_resource($process)) {
+            $buildOutput = stream_get_contents($pipes[1]);
+            $buildErrors = stream_get_contents($pipes[2]);
+            fclose($pipes[1]);
+            fclose($pipes[2]);
+            $buildCode = proc_close($process);
+        } else {
+            $buildOutput = "";
+            $buildErrors = "Failed to spawn process";
+            $buildCode = -1;
+        }
+
+        // Write debug log
+        $logDir = __DIR__ . '/../data/logs';
+        if (!file_exists($logDir)) mkdir($logDir, 0777, true);
+        file_put_contents($logDir . '/build.log', 
+            date('c') . " CMD: $buildCmd\nOUT: $buildOutput\nERR: $buildErrors\nDBG: " . json_encode($debug) . "\n\n", 
+            FILE_APPEND
+        );
 
         $exePath = $tempDir . '/dist/beacon.exe';
         
@@ -217,7 +247,8 @@ PYTHON;
         } else {
             jsonResponse([
                 'error' => 'Build failed',
-                'details' => implode("\n", $buildOutput)
+                'details' => "Code: $buildCode\nOutput: $buildOutput\nError: $buildErrors",
+                'debug' => $debug
             ], 500);
         }
         break;
