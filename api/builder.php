@@ -809,8 +809,16 @@ LOADER;
         if ($isWindows) {
              $buildCmd = "cd /d \"$tempDir\" && $python -m PyInstaller --onefile --noconsole --noupx --clean --name {$internalName} beacon.py 2>&1";
         } else {
-             $debugPath = getenv('PATH') . ":/usr/local/bin:/home/" . exec('whoami') . "/.local/bin";
-             $buildCmd = "export PATH=\"$debugPath\" && cd \"$tempDir\" && $python -m PyInstaller --onefile --noconsole --noupx --strip --clean --name {$internalName} beacon.py 2>&1";
+             // Use the wrapper script we created in setup.sh which handles PATH and permissions correctly
+             $pyinstaller = "/usr/bin/pyinstaller";
+             if (!file_exists($pyinstaller)) {
+                 // Fallback to what's in PATH if wrapper doesn't exist
+                 $pyinstaller = "pyinstaller";
+             }
+             
+             // Set a minimal safe PATH just in case
+             $debugPath = "/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin";
+             $buildCmd = "export PATH=\"$debugPath\" && cd \"$tempDir\" && $pyinstaller --onefile --noconsole --noupx --strip --clean --name {$internalName} beacon.py 2>&1";
         }
         
         $descriptors = [1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
